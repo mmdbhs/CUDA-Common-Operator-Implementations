@@ -1,5 +1,4 @@
-#include "relu.hpp"
-// #include "tensor.hpp"
+#include "sigmod.hpp"
 #include <glog/logging.h>
 
 
@@ -13,22 +12,17 @@ inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort=t
 	}
 }
 
-__global__ void relu_kernel(float *input, float *output, uint length) {
+__global__ void sigmod_kernel(float *input, float *output, uint length) {
     uint x = blockIdx.x * blockDim.x + threadIdx.x;
 	// uint y = blockIdx.y * blockDim.y  + threadIdx.y;
     if(x >= length) {
         return;
     }
 
-    if(input[x] >=0)
-    {
-        output[x] = input[x];
-    } else {
-        output[x] = 0;
-    }
+    output[x] = 1.0 / (1.0 + expf(input[x]));
 }
 
-void relu_layer::forward(float *input, float *output){
+void sigmod_layer::forward(float *input, float *output){
     CHECK(m_length != 0) << "m_length is 0";
 
     float* d_input;
@@ -42,7 +36,7 @@ void relu_layer::forward(float *input, float *output){
     dim3 rowsGrid(ceil(1.0f*m_length/thread_PerBlock),1 , 1);
 	dim3 rowsThreads(thread_PerBlock, 1, 1);
 
-    relu_kernel<<<rowsGrid, rowsThreads>>>(d_input, d_output, m_length);
+    sigmod_kernel<<<rowsGrid, rowsThreads>>>(d_input, d_output, m_length);
 
     eee(cudaMemcpy(output, d_output, m_length * sizeof(float), cudaMemcpyDeviceToHost));
 

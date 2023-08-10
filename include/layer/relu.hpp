@@ -6,11 +6,12 @@ public:
     // relu_layer();
     // ~relu_layer();
 
-    void set_length(int length) { m_length = length; }
+    void set_length(unsigned int length) { m_length = length; }
 
     void forward(float *input, float *output);
+
 private:
-    uint m_length = 0;
+    unsigned int m_length = 0;
 };
 
 
